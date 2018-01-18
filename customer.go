@@ -1,8 +1,7 @@
 package main
 
 import (
-	"c3m/apps/common"
-
+	"github.com/tidusant/c3m-common/c3mcommon"
 	"github.com/tidusant/c3m-common/log"
 	rpch "github.com/tidusant/chadmin-repo/cuahang"
 	"github.com/tidusant/chadmin-repo/models"
@@ -45,7 +44,7 @@ func (t *Arith) Run(data string, result *string) error {
 	//check shop permission
 	shop := rpch.GetShopById(usex.UserID, ShopID)
 	if shop.Status == 0 {
-		*result = common.ReturnJsonMessage("-4", "Shop is disabled.", "", "")
+		*result = c3mcommon.ReturnJsonMessage("-4", "Shop is disabled.", "", "")
 		return nil
 	}
 	usex.Shop = shop
@@ -53,7 +52,7 @@ func (t *Arith) Run(data string, result *string) error {
 	if usex.Action == "lc" {
 		*result = LoadCustomerByPhone(usex)
 	} else { //default
-		*result = common.ReturnJsonMessage("-5", "Action not found.", "", "")
+		*result = c3mcommon.ReturnJsonMessage("-5", "Action not found.", "", "")
 	}
 
 	return nil
@@ -63,8 +62,8 @@ func SaveShipper(usex models.UserSession) string {
 
 	var shipper models.Shipper
 	err := json.Unmarshal([]byte(usex.Params), &shipper)
-	if !common.CheckError("update shipper parse json", err) {
-		return common.ReturnJsonMessage("0", "update shipper fail", "", "")
+	if !c3mcommon.CheckError("update shipper parse json", err) {
+		return c3mcommon.ReturnJsonMessage("0", "update shipper fail", "", "")
 	}
 	//check old status
 	oldshipper := shipper
@@ -88,28 +87,28 @@ func SaveShipper(usex models.UserSession) string {
 
 	oldshipper = rpch.SaveShipper(oldshipper)
 	b, _ := json.Marshal(oldshipper)
-	return common.ReturnJsonMessage("1", "", "success", string(b))
+	return c3mcommon.ReturnJsonMessage("1", "", "success", string(b))
 }
 
 func DeleteShipper(usex models.UserSession) string {
 	//get stat
 	shipper := rpch.GetShipperByID(usex.Params, usex.Shop.ID.Hex())
 	if shipper.ID.Hex() == "" {
-		return common.ReturnJsonMessage("-5", "shipper not found.", "", "")
+		return c3mcommon.ReturnJsonMessage("-5", "shipper not found.", "", "")
 	}
 	if shipper.Default {
-		return common.ReturnJsonMessage("-5", "shipper is default. Please select another shipper default.", "", "")
+		return c3mcommon.ReturnJsonMessage("-5", "shipper is default. Please select another shipper default.", "", "")
 	}
 	//check status empty
 	count := rpch.GetCountOrderByShipper(shipper)
 	//check old status
 	if count > 0 {
-		return common.ReturnJsonMessage("-5", "shipper not empty. "+strconv.Itoa(count)+" shipper use this status", "", "")
+		return c3mcommon.ReturnJsonMessage("-5", "shipper not empty. "+strconv.Itoa(count)+" shipper use this status", "", "")
 	}
 
 	rpch.DeleteShipper(shipper)
 
-	return common.ReturnJsonMessage("1", "", "success", "")
+	return c3mcommon.ReturnJsonMessage("1", "", "success", "")
 }
 
 func LoadCustomerByPhone(usex models.UserSession) string {
@@ -118,7 +117,7 @@ func LoadCustomerByPhone(usex models.UserSession) string {
 	countorder := rpch.CountOrderByCus(usex.Params, usex.Shop.ID.Hex())
 	info, _ := json.Marshal(cus)
 	strrt := `{"cus":` + string(info) + `,"count":` + strconv.Itoa(countorder) + `}`
-	return common.ReturnJsonMessage("1", "", "success", strrt)
+	return c3mcommon.ReturnJsonMessage("1", "", "success", strrt)
 }
 
 func main() {
@@ -144,10 +143,10 @@ func main() {
 	log.Infof("running with port:" + strconv.Itoa(port))
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", ":"+strconv.Itoa(port))
-	common.CheckError("rpc dail:", err)
+	c3mcommon.CheckError("rpc dail:", err)
 
 	listener, err := net.ListenTCP("tcp", tcpAddr)
-	common.CheckError("rpc init listen", err)
+	c3mcommon.CheckError("rpc init listen", err)
 
 	for {
 		conn, err := listener.Accept()
