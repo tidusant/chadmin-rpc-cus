@@ -107,7 +107,6 @@ func DeleteShipper(usex models.UserSession) string {
 	}
 
 	rpch.DeleteShipper(shipper)
-
 	return c3mcommon.ReturnJsonMessage("1", "", "success", "")
 }
 
